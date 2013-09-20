@@ -14,7 +14,7 @@
                     <GridViewColumn Header="Operate" Width="99">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <Button Content="Delete"  Width="75" Height="23" Click="Button_Click" CommandParameter="{Binding Path=Path}"/>
+                                <Button Content="Delete"  Width="75" Height="23" Click="Delete_Click" CommandParameter="{Binding Path=Path}"/>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
