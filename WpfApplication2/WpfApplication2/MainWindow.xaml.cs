@@ -26,6 +26,7 @@ namespace QQ_Byhh
         private List<Info> mPath = new List<Info>();
         //List<string> mName = new List<string>();
         string datasource = @"C:\Users\Administrator\Desktop\WPF_startPrograms\test.db";
+        enum dowhat {set, get};
 
         public MainWindow()
         {
@@ -36,6 +37,8 @@ namespace QQ_Byhh
         private void DataBinding()
         {
             this.ProgramList.ItemsSource = mPath;//为ListView绑定数据源：多进程路径  
+
+            dbOperate(dowhat.get);
         }
 
         private void Add_Click(object sender, RoutedEventArgs e)
@@ -104,8 +107,16 @@ namespace QQ_Byhh
 
         private void Set_Click(object sender, RoutedEventArgs e)
         {
-            //创建一个数据库文件
-            SQLiteConnection.CreateFile(datasource);
+            //dbOperate(dowhat.set);
+        }
+
+        private void dbOperate(dowhat dw)
+        {
+            if (dw == dowhat.set)
+            {
+                //创建一个数据库文件
+                SQLiteConnection.CreateFile(datasource);
+            }
 
             //连接数据库
             SQLiteConnection conn =
@@ -117,37 +128,69 @@ namespace QQ_Byhh
             connstr.DataSource = datasource;
             //设置密码，SQLite ADO.NET实现了数据库密码保护
             connstr.Password = "admin";
-            // 关联conn和connstr
+            //关联conn和connstr
             conn.ConnectionString = connstr.ToString();
             conn.Open();
 
-            //创建表
-            SQLiteCommand cmd = new SQLiteCommand();
-            string sql = "CREATE TABLE test(username varchar(20),password varchar(20))";
-            cmd.CommandText = sql;
-            cmd.Connection = conn;
-            cmd.ExecuteNonQuery();
+            string sql = null;
+            SQLiteCommand cmd = null;
 
-            //插入数据
-            for (int i = 0; i < mPath.Count; i++)
+            if (dw == dowhat.set)
             {
-                sql = "INSERT INTO test VALUES('" + mPath[i].Path + "','mypassword')";
+                //创建表
+                cmd = new SQLiteCommand();
+                sql = "CREATE TABLE test(username varchar(20),password varchar(20))";
+                cmd.CommandText = sql;
+                cmd.Connection = conn;
+                cmd.ExecuteNonQuery();
+
+                //插入数据
+                //先插入数据个数
+                sql = "INSERT INTO test VALUES('" + mPath.Count + "','mypassword')";
                 cmd.CommandText = sql;
                 cmd.ExecuteNonQuery();
+                //再插入待执行程序路径
+                for (int i = 0; i < mPath.Count; i++)
+                {
+                    sql = "INSERT INTO test VALUES('" + mPath[i].Path + "','mypassword')";
+                    cmd.CommandText = sql;
+                    cmd.ExecuteNonQuery();
+                }
             }
 
-            //取出数据
-            sql = "SELECT * FROM test";
-            cmd.CommandText = sql;
-            SQLiteDataReader reader = cmd.ExecuteReader();
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < mPath.Count; i++)
+            if (dw == dowhat.get)
             {
-                reader.Read();
-                sb.Append(reader.GetString(0)).Append("\n");
+                int num;
+                Microsoft.Win32.OpenFileDialog oFile = new Microsoft.Win32.OpenFileDialog();
+
+                //取出数据
+                sql = "SELECT * FROM test";
+                cmd.CommandText = sql;
+                SQLiteDataReader reader = cmd.ExecuteReader();
+                //取出的第一个数据是预先加载的程序数量
+                try
+                {
+                    reader.Read();
+                    num = Convert.ToUInt16(reader.GetString(0));
+                    for (int i = 0; i < num; i++)
+                    {
+                        reader.Read();
+                        Info myPath = new Info()
+                        {
+                            Path = oFile.FileName   // object initializer
+                        };
+                        mPath.Add(myPath);
+                    }
+                    this.ProgramList.Items.Refresh();
+                }
+                catch (Exception e)
+                { }
             }
 
-            MessageBox.Show(sb.ToString());
+            //关闭数据库的连接
+            conn.Close();
+
+            //MessageBox.Show(sb.ToString());
         }
 
         private void Close_Click(object sender, RoutedEventArgs e)
@@ -165,6 +208,4 @@ namespace QQ_Byhh
             set { path = value; }
         }
     }
-
-    // TODO： Add database support to store the starting processes
 }
