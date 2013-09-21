@@ -16,7 +16,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Data.SQLite;
 
-namespace QQ_Byhh
+namespace MultiStart
 {
     /// <summary>
     /// MainWindow.xaml 的交互逻辑
