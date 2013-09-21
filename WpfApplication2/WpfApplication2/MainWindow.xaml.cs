@@ -26,7 +26,7 @@ namespace QQ_Byhh
         private List<Info> mPath = new List<Info>();
         //List<string> mName = new List<string>();
         string datasource = @"C:\Users\Administrator\Desktop\WPF_startPrograms\test.db";
-        enum dowhat {set, get};
+        enum dowhat { set, get };
 
         public MainWindow()
         {
@@ -38,7 +38,7 @@ namespace QQ_Byhh
         {
             this.ProgramList.ItemsSource = mPath;//为ListView绑定数据源：多进程路径  
 
-            dbOperate(dowhat.get);
+            dbGet();
         }
 
         private void Add_Click(object sender, RoutedEventArgs e)
@@ -107,16 +107,13 @@ namespace QQ_Byhh
 
         private void Set_Click(object sender, RoutedEventArgs e)
         {
-            //dbOperate(dowhat.set);
+            dbSet();
         }
 
-        private void dbOperate(dowhat dw)
+        private void dbGet()
         {
-            if (dw == dowhat.set)
-            {
-                //创建一个数据库文件
-                SQLiteConnection.CreateFile(datasource);
-            }
+            //创建一个数据库文件
+            //SQLiteConnection.CreateFile(datasource);
 
             //连接数据库
             SQLiteConnection conn =
@@ -135,62 +132,87 @@ namespace QQ_Byhh
             string sql = null;
             SQLiteCommand cmd = null;
 
-            if (dw == dowhat.set)
+            //创建表
+            //cmd = new SQLiteCommand();
+            //sql = "CREATE TABLE test(username varchar(20),password varchar(20))";
+            //cmd.CommandText = sql;
+            //cmd.Connection = conn;
+            //cmd.ExecuteNonQuery();
+
+            int num;
+
+            //取出数据
+            cmd = new SQLiteCommand();
+            sql = "SELECT * FROM test";
+            cmd.CommandText = sql;
+            cmd.Connection = conn;
+            SQLiteDataReader reader = cmd.ExecuteReader();
+            //取出的第一个数据是预先加载的程序数量
+            if (reader.Read())  //如果有数据，再进一步处理
             {
-                //创建表
-                cmd = new SQLiteCommand();
-                sql = "CREATE TABLE test(username varchar(20),password varchar(20))";
-                cmd.CommandText = sql;
-                cmd.Connection = conn;
-                cmd.ExecuteNonQuery();
-
-                //插入数据
-                //先插入数据个数
-                sql = "INSERT INTO test VALUES('" + mPath.Count + "','mypassword')";
-                cmd.CommandText = sql;
-                cmd.ExecuteNonQuery();
-                //再插入待执行程序路径
-                for (int i = 0; i < mPath.Count; i++)
-                {
-                    sql = "INSERT INTO test VALUES('" + mPath[i].Path + "','mypassword')";
-                    cmd.CommandText = sql;
-                    cmd.ExecuteNonQuery();
-                }
-            }
-
-            if (dw == dowhat.get)
-            {
-                int num;
-                Microsoft.Win32.OpenFileDialog oFile = new Microsoft.Win32.OpenFileDialog();
-
-                //取出数据
-                sql = "SELECT * FROM test";
-                cmd.CommandText = sql;
-                SQLiteDataReader reader = cmd.ExecuteReader();
-                //取出的第一个数据是预先加载的程序数量
-                try
+                num = Int32.Parse(reader.GetString(0));
+                for (int i = 0; i < num; i++)
                 {
                     reader.Read();
-                    num = Convert.ToUInt16(reader.GetString(0));
-                    for (int i = 0; i < num; i++)
+                    Info myPath = new Info()
                     {
-                        reader.Read();
-                        Info myPath = new Info()
-                        {
-                            Path = oFile.FileName   // object initializer
-                        };
-                        mPath.Add(myPath);
-                    }
-                    this.ProgramList.Items.Refresh();
+                        Path = reader.GetString(0)   // object initializer
+                    };
+                    mPath.Add(myPath);
                 }
-                catch (Exception e)
-                { }
+            }
+            else
+                MessageBox.Show("No process data in db!");
+            this.ProgramList.Items.Refresh();
+
+            //关闭数据库的连接
+            conn.Close();
+        }
+
+        private void dbSet()
+        {
+            //创建一个数据库文件
+            SQLiteConnection.CreateFile(datasource);
+
+            //连接数据库
+            SQLiteConnection conn =
+                new SQLiteConnection();
+
+            SQLiteConnectionStringBuilder connstr =
+                new SQLiteConnectionStringBuilder();
+
+            connstr.DataSource = datasource;
+            //设置密码，SQLite ADO.NET实现了数据库密码保护
+            connstr.Password = "admin";
+            //关联conn和connstr
+            conn.ConnectionString = connstr.ToString();
+            conn.Open();
+
+            string sql = null;
+            SQLiteCommand cmd = null;
+
+            //创建表
+            cmd = new SQLiteCommand();
+            sql = "CREATE TABLE test(username varchar(20),password varchar(20))";
+            cmd.CommandText = sql;
+            cmd.Connection = conn;
+            cmd.ExecuteNonQuery();
+
+            //插入数据
+            //先插入数据个数
+            sql = "INSERT INTO test VALUES('" + mPath.Count + "','mypassword')";
+            cmd.CommandText = sql;
+            cmd.ExecuteNonQuery();
+            //再插入待执行程序路径
+            for (int i = 0; i < mPath.Count; i++)
+            {
+                sql = "INSERT INTO test VALUES('" + mPath[i].Path + "','mypassword')";
+                cmd.CommandText = sql;
+                cmd.ExecuteNonQuery();
             }
 
             //关闭数据库的连接
             conn.Close();
-
-            //MessageBox.Show(sb.ToString());
         }
 
         private void Close_Click(object sender, RoutedEventArgs e)

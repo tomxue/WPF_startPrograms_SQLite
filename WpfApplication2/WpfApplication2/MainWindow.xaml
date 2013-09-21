@@ -25,6 +25,6 @@
         <Button Grid.Row="1" HorizontalAlignment="Right" Name="Add" Margin="0,0,402,0" Click="Add_Click" Width="90">Add Program</Button>
         <Button Grid.Row="1" HorizontalAlignment="Right" Name="Start" Margin="0,0,278,0" Click="Start_Click" Width="90">Start Program</Button>
         <Button Grid.Row="1" HorizontalAlignment="Right" Name="Set" Margin="0,0,153,0" Click="Set_Click" Width="90">Set</Button>
-        <Button Grid.Row="1" HorizontalAlignment="Right" Name="Close" Margin="0,0,27,0" Click="Close_Click" Width="90">Close</Button>
+        <Button Grid.Row="1" HorizontalAlignment="Right" x:Name="Close" Margin="0,0,27,0" Click="Close_Click" Width="90" Content="Close"/>
     </Grid>
 </Window>
