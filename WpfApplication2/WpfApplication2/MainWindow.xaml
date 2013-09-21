@@ -10,7 +10,7 @@
         <ListView Name="ProgramList" MinWidth="280" ItemsSource="{Binding Path=mPath}">
             <ListView.View>
                 <GridView x:Name="ProgramGrid">
-                    <GridViewColumn Header="ProgramPath"  Width="400" DisplayMemberBinding="{Binding Path=Path}"></GridViewColumn>
+                    <GridViewColumn Header="Program Path"  Width="400" DisplayMemberBinding="{Binding Path=Path}"></GridViewColumn>
                     <GridViewColumn Header="Operate" Width="99">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>

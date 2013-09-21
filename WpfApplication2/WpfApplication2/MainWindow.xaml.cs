@@ -15,6 +15,7 @@ using System.Diagnostics;
 using System.Data;
 using System.Data.SqlClient;
 using System.Data.SQLite;
+using System.IO;
 
 namespace MultiStart
 {
@@ -31,6 +32,7 @@ namespace MultiStart
         public MainWindow()
         {
             InitializeComponent();
+            string dbPath = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
             this.DataBinding();
         }
 
@@ -133,13 +135,14 @@ namespace MultiStart
             conn.Open();
 
             string sql = null;
+            string sqlEmpty = null;
             SQLiteCommand cmd = null;
 
             if (dw == dowhat.set)
             {
                 //创建表
                 cmd = new SQLiteCommand();
-                sql = "CREATE TABLE test(username varchar(20),password varchar(20))";
+                sql = "CREATE TABLE testTable(username varchar(20),password varchar(20))";
                 cmd.CommandText = sql;
                 cmd.Connection = conn;
                 cmd.ExecuteNonQuery();
@@ -149,13 +152,13 @@ namespace MultiStart
             {
                 //插入数据
                 //先插入数据个数
-                sql = "INSERT INTO test VALUES('" + mPath.Count + "','mypassword')";
+                sql = "INSERT INTO testTable VALUES('" + mPath.Count + "','mypassword')";
                 cmd.CommandText = sql;
                 cmd.ExecuteNonQuery();
                 //再插入待执行程序路径
                 for (int i = 0; i < mPath.Count; i++)
                 {
-                    sql = "INSERT INTO test VALUES('" + mPath[i].Path + "','mypassword')";
+                    sql = "INSERT INTO testTable VALUES('" + mPath[i].Path + "','mypassword')";
                     cmd.CommandText = sql;
                     cmd.ExecuteNonQuery();
                 }
@@ -167,10 +170,16 @@ namespace MultiStart
 
                 //取出数据
                 cmd = new SQLiteCommand();
-                sql = "SELECT * FROM test";
-                cmd.CommandText = sql;
+                sql = "SELECT * FROM testTable";
+                sqlEmpty = "SELECT COUNT(*) FROM sqlite_master where type='table' and name='testTable'";
                 cmd.Connection = conn;
-                SQLiteDataReader reader = cmd.ExecuteReader();
+                SQLiteDataReader reader = null;
+                cmd.CommandText = sqlEmpty;
+                if (Convert.ToInt32(cmd.ExecuteScalar()) == 0)
+                    goto doClose;
+                else
+                    cmd.CommandText = sql;
+                reader = cmd.ExecuteReader();
                 //取出的第一个数据是预先加载的程序数量
                 if (reader.Read())  //如果有数据，再进一步处理
                 {
@@ -190,7 +199,7 @@ namespace MultiStart
                 this.ProgramList.Items.Refresh();
             }
 
-            //关闭数据库的连接
+        doClose:    //关闭数据库的连接
             conn.Close();
         }
 
