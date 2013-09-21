@@ -112,7 +112,7 @@ namespace MultiStart
             dbOp(dowhat.set);
         }
 
-        private void dbOp(dowhat dw)
+        private int dbOp(dowhat dw)
         {
             if (dw == dowhat.set)
             {
@@ -175,11 +175,22 @@ namespace MultiStart
                 cmd.Connection = conn;
                 SQLiteDataReader reader = null;
                 cmd.CommandText = sqlEmpty;
-                if (Convert.ToInt32(cmd.ExecuteScalar()) == 0)
-                    goto doClose;
-                else
-                    cmd.CommandText = sql;
-                reader = cmd.ExecuteReader();
+                try
+                {
+                    if (Convert.ToInt32(cmd.ExecuteScalar()) == 0)
+                    //if (cmd.ExecuteScalar() == null)
+                    {
+                        conn.Close();
+                        return -1;
+                    }
+                    else
+                        cmd.CommandText = sql;
+                    reader = cmd.ExecuteReader();
+                }
+                catch (SQLiteException exp)
+                {
+                    Trace.WriteLine(exp.Message);
+                }
                 //取出的第一个数据是预先加载的程序数量
                 if (reader.Read())  //如果有数据，再进一步处理
                 {
@@ -199,8 +210,10 @@ namespace MultiStart
                 this.ProgramList.Items.Refresh();
             }
 
-        doClose:    //关闭数据库的连接
+            //关闭数据库的连接
             conn.Close();
+
+            return 0;
         }
 
         private void Close_Click(object sender, RoutedEventArgs e)
