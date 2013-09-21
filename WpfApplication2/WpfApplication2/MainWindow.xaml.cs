@@ -12,6 +12,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Diagnostics;
+using System.Data;
+using System.Data.SqlClient;
+using System.Data.SQLite;
 
 namespace QQ_Byhh
 {
@@ -22,6 +25,7 @@ namespace QQ_Byhh
     {
         private List<Info> mPath = new List<Info>();
         //List<string> mName = new List<string>();
+        string datasource = @"C:\Users\Administrator\Desktop\WPF_startPrograms\test.db";
 
         public MainWindow()
         {
@@ -67,7 +71,7 @@ namespace QQ_Byhh
 
         private void DeleteProgram(string sP)
         {
-           
+
             if (mPath.Count > 0)
             {
                 for (int i = 0; i < mPath.Count; i++)
@@ -98,10 +102,58 @@ namespace QQ_Byhh
             }
         }
 
+        private void Set_Click(object sender, RoutedEventArgs e)
+        {
+            //创建一个数据库文件
+            SQLiteConnection.CreateFile(datasource);
+
+            //连接数据库
+            SQLiteConnection conn =
+                new SQLiteConnection();
+
+            SQLiteConnectionStringBuilder connstr =
+                new SQLiteConnectionStringBuilder();
+
+            connstr.DataSource = datasource;
+            //设置密码，SQLite ADO.NET实现了数据库密码保护
+            connstr.Password = "admin";
+            // 关联conn和connstr
+            conn.ConnectionString = connstr.ToString();
+            conn.Open();
+
+            //创建表
+            SQLiteCommand cmd = new SQLiteCommand();
+            string sql = "CREATE TABLE test(username varchar(20),password varchar(20))";
+            cmd.CommandText = sql;
+            cmd.Connection = conn;
+            cmd.ExecuteNonQuery();
+
+            //插入数据
+            for (int i = 0; i < mPath.Count; i++)
+            {
+                sql = "INSERT INTO test VALUES('" + mPath[i].Path + "','mypassword')";
+                cmd.CommandText = sql;
+                cmd.ExecuteNonQuery();
+            }
+
+            //取出数据
+            sql = "SELECT * FROM test";
+            cmd.CommandText = sql;
+            SQLiteDataReader reader = cmd.ExecuteReader();
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < mPath.Count; i++)
+            {
+                reader.Read();
+                sb.Append(reader.GetString(0)).Append("\n");
+            }
+
+            MessageBox.Show(sb.ToString());
+        }
+
         private void Close_Click(object sender, RoutedEventArgs e)
         {
             Close();
-        }  
+        }
     }
 
     class Info  // one property
