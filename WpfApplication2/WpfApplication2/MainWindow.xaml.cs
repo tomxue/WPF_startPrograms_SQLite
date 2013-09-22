@@ -147,6 +147,7 @@ namespace MultiStart
                 sql = "SELECT COUNT(*) FROM sqlite_master where type='table' and name='testTable';";
                 cmd.CommandText = sql;
                 cmd.Connection = conn;
+                //如果表不存在则创建之
                 if (0 == Convert.ToInt32(cmd.ExecuteScalar()))
                 {
                     //创建表
