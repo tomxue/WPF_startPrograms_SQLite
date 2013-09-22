@@ -117,7 +117,10 @@ namespace MultiStart
             if (dw == dowhat.set)
             {
                 //创建一个数据库文件
-                SQLiteConnection.CreateFile(datasource);
+                if (!File.Exists(datasource))
+                {
+                    SQLiteConnection.CreateFile(datasource);
+                }
             }
 
             //连接数据库
@@ -140,12 +143,17 @@ namespace MultiStart
 
             if (dw == dowhat.set)
             {
-                //创建表
                 cmd = new SQLiteCommand();
-                sql = "CREATE TABLE testTable(username varchar(20),password varchar(20))";
+                sql = "SELECT COUNT(*) FROM sqlite_master where type='table' and name='testTable';";
                 cmd.CommandText = sql;
                 cmd.Connection = conn;
-                cmd.ExecuteNonQuery();
+                if (0 == Convert.ToInt32(cmd.ExecuteScalar()))
+                {
+                    //创建表
+                    sql = "CREATE TABLE testTable(username varchar(20),password varchar(20))";
+                    cmd.CommandText = sql;
+                    cmd.ExecuteNonQuery();
+                }
             }
 
             if (dw == dowhat.set)
@@ -176,7 +184,6 @@ namespace MultiStart
                 SQLiteDataReader reader = null;
                 cmd.CommandText = sqlEmpty;
 
-                //var schema = conn.GetSchema("Tables", new string[] { null, null, "testTable" });
                 var schema = conn.GetSchema("Tables", new string[] { null, null, "testTable" });
                 if (schema.Rows.Count == 0)
                     return 1;
